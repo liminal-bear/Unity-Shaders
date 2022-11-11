@@ -12,7 +12,7 @@ I highly reccomend taking a look at the 'helpful basics' folder for more insight
 ## Scoootoon_2
 <img src="https://github.com/liminal-bear/Unity-Shaders/blob/master/previewImages/Avatar27Toon.png" width=50% height=50%>
 
-## CubeMapInteriorMapping
+## CubeMapping
 <img src="https://github.com/liminal-bear/Unity-Shaders/blob/master/previewImages/CubeMap.PNG" width=50% height=50%>
 
 ## gaussianBlur
