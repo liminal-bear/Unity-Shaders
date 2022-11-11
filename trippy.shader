@@ -1,4 +1,4 @@
-﻿Shader "skyboxOnly" {
+﻿Shader "trippy" {
     SubShader{
         Tags {"Queue" = "Geometry-10" }
         Cull off
