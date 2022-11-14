@@ -28,10 +28,7 @@
 	}
 
 	CGINCLUDE //shared includes, variables, and functions
-    #include "UnityCG.cginc"
-
-	//uniform float4 _LightColor0;
-	// color of light source (from "Lighting.cginc")
+        #include "UnityCG.cginc"
 
 	// User-specified properties
 	sampler2D _MainTex;
@@ -46,6 +43,7 @@
 	   return frac(sin(dot(seed, float2(12.9898, 78.233))) * 43758.5453123);
 	}
 
+        //used to change the gradient of secondary lines
 	float Quantize(float num, float quantize)
 	{
 	   return round(num * quantize) / quantize;
@@ -100,6 +98,7 @@
 				float4x4 modelMatrix = unity_ObjectToWorld;
 				float4x4 modelMatrixInverse = unity_WorldToObject;
 
+                                //these values are used for rim lighting, similar to silhouette enhancement in hekpful basics
 				output.normal = normalize(
 					mul(float4(input.normal, 0.0), modelMatrixInverse).xyz);
 				output.viewDir = normalize(_WorldSpaceCameraPos
@@ -120,8 +119,11 @@
 				output.posObj = input.vertex;
 
 				//float4 adjustedDimension = 0.01 * sin(_LineSpeed * _Time.y + output.posWorld.x * _Density);
+                                //changed vertex distortion to utilize a texture, rather than the sin function
+                                //this (probably) saves on computation, and increases randomness
 				float adjustedDimension = _Distortion * (0.5 - tex2Dlod(_NoiseTex, float4(output.posObj.xy + _Time.y, 0, 0)));
 
+                                //performs distortion
 				input.vertex.x += adjustedDimension;
 
 				output.pos = UnityObjectToClipPos(input.vertex);
