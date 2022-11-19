@@ -1,10 +1,8 @@
 ﻿Shader "static"
 {
 
-	//the most basic shader, just a texture
-	//other parameters for the shader are suppressed for now
-	//you can make a copy of this code and use it as a starting point for more advanced shaders
-	//to see what these parameters do, you can look at parameterView
+	//static shader, utilizes a psuedo-random sampling of a texture to simulate static
+	//the seed is set to the depth of the pixel
 
 	Properties
 	{
