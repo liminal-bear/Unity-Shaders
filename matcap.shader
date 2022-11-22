@@ -143,7 +143,7 @@ Shader "MatCap1"
 
 #if defined(USING_STEREO_MATRICES)
 				//float x = _XRWorldSpaceCameraPos[i](0).xyz
-				headDirection = normalize(_XRWorldSpaceCameraPos[i](0).xyz + _XRWorldSpaceCameraPos[i](1).xyz * 0.5) - posWorld;
+				headDirection = normalize(unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex].xyz + unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex].xyz * 0.5) - input.posWorld;
 #else
 				headDirection = normalize(UNITY_MATRIX_V._m20_m21_m22);
 #endif
