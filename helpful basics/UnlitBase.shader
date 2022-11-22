@@ -17,6 +17,7 @@
 
 		// User-specified properties
 	    sampler2D _MainTex;
+		uniform float4 _MainTex_ST;
 		uniform float _Brightness;
 
 	   ENDCG
@@ -31,6 +32,8 @@
 
 		  Pass
 		  {
+			  Cull Back
+
 			  CGPROGRAM
 			  #pragma vertex vert
 			  #pragma fragment frag
@@ -84,7 +87,7 @@
 
 			  float4 frag(vertexOutput input) : COLOR
 			  {
-				     half4 col = tex2D(_MainTex, input.tex.xy);
+				     half4 col = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 
 					 return col * _Brightness;
 			  }
