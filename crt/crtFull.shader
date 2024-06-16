@@ -104,8 +104,8 @@ Shader "CRT Full"
 
 				distortionUV = (distortionUV - 0.5) / _Zoom + 0.5;
 
-				//fixed4 mainTex = tex2D(_MainTex, (distortionUV * _MainTex_ST.xy) + _MainTex_ST.zw);
-				fixed4 mainTex = tex2D(_MainTex, distortionUV);
+				fixed4 mainTex = tex2D(_MainTex, (distortionUV * _MainTex_ST.xy) + _MainTex_ST.zw);
+				//fixed4 mainTex = tex2D(_MainTex, distortionUV);
 
 				fixed2 noiseUV = distortionUV + fixed2(_NoiseXSpeed * _SinTime.z, _NoiseYSpeed * _SinTime.z);
 				fixed4 noiseTex = tex2D(_NoiseTex, noiseUV);

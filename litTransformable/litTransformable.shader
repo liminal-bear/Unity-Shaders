@@ -2,8 +2,8 @@
 {
 	Properties
 	{
-		_MainTex("Main Texture", 2D) = "white" {}
-		_TintColor("Tint Color", Color) = (1,1,1,1)
+			_MainTex("Main Texture", 2D) = "white" {}
+			_TintColor("Tint Color", Color) = (1,1,1,1)
 			//[Toggle] _UseNormal("Use Normal Map?", Int) = 0
 			[NoScaleOffset] _NormalMap("Normal Map", 2D) = "bump" {} //for some reason, "bump" doesn't initialize properly, there is a fix for this down below
 			_NormalStrength("Normal Strength", Range(0.0, 3.0)) = 1
@@ -11,6 +11,10 @@
 			_MetallicScale("Metallic scale", Range(0.0, 1.0)) = 0
 			[NoScaleOffset] _RoughnessMap("Roughness Map", 2D) = "black" {}
 			_RoughnessScale("Roughness scale", Range(0, 1)) = 1
+
+			[Toggle] _UseCustomSkybox("Custom Skybox", Int) = 0
+			_CustomSkybox("Custom Cubemap for reflections", Cube) = "" {}
+
 			[Toggle] _UseEmission("Emission", Int) = 0
 			[NoScaleOffset] _Emission("Emission Map", 2D) = "black" {}
 			_EmissionColor("Emission Color", Color) = (1,1,1)
@@ -21,11 +25,14 @@
 			[Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 2
 			[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("ZTest", Float) = 4
 			[Enum(Off, 0, On, 1)] _ZWrite("ZWrite", Int) = 1
+			[Enum(False, 0, True, 1)] _AlphaToMask("AlphaToMask", Int) = 1
 			_AdjustMask("Color Adjustment mask", 2D) = "white" {}
 			_Hue("Hue", Range(0,360)) = 0
 			_Sat("Saturation", Range(0,10)) = 1
 			_Bright("Brightness", Range(0, 100)) = 1
 			_Opacity("Opacity", Range(0,1)) = 1
+
+			//_ChromaticAbAmount("Chromatic Abberation Amount", Range(0, 0.1)) = 0.01
 
 			_AxisAdjust("Axis adjust", Vector) = (1,1,1,1)
 			_QuantPos("Quantize Vertices", Range(1, 500)) = 500
@@ -65,6 +72,10 @@
 			uniform sampler2D _Emission;
 			uniform float3 _EmissionColor;
 
+			uniform int _UseCustomSkybox;
+			//uniform sampler3D _CustomSkybox;
+			UNITY_DECLARE_TEXCUBE(_CustomSkybox);
+
 
 			uniform float4 _DiffColor;
 			//uniform float4 _SpecColor;
@@ -80,6 +91,8 @@
 			float _Hue;
 			float _Sat;
 			float _Bright;
+
+			float _ChromaticAbAmount;
 
 			float Quantize(float num, float quantize)
 			{
@@ -107,6 +120,7 @@
 				//LIGHTING_COORDS(5, 6)
 				UNITY_LIGHTING_COORDS(5, 6)
 				//V2F_SHADOW_CASTER
+				UNITY_FOG_COORDS(7)
 			};
 
 			vertexOutput vert(vertexInput input)
@@ -129,7 +143,7 @@
 
 				input.vertex *= _AxisAdjust;
 
-				if (_QuantPos < 500)
+				if (_QuantPos < 498)
 				{
 					float4 worldVertex = mul(unity_ObjectToWorld, input.vertex);
 					worldVertex.x = Quantize(worldVertex.x, _QuantPos);
@@ -146,6 +160,8 @@
 					input.vertex = mul(unity_WorldToObject, worldVertex);
 				}
 				output.pos = UnityObjectToClipPos(input.vertex);
+
+				UNITY_TRANSFER_FOG(output, output.pos);
 
 				half3 worldN = UnityObjectToWorldNormal(input.normal);
 				half3 shlight = ShadeSH9(float4(worldN, 1.0));
@@ -243,13 +259,14 @@
 				Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
 				Pass
 				{
-					AlphaToMask On
+					AlphaToMask [_AlphaToMask]
 					Cull[_Cull]
 					CGPROGRAM
 					#pragma vertex vert
 					#pragma fragment frag
 					#pragma multi_compile_fwdbase
 					#pragma target 3.0
+					#pragma multi_compile_fog
 
 					float4 frag(vertexOutput input) : COLOR
 					{
@@ -359,12 +376,38 @@
 						float4 lightProbeLighting;
 						lightProbeLighting.rgb = input.vLight;
 
+						// float4 r = lightProbeLighting;
+						// return float4(r.x,r.y,r.z,1);
+
 						//half3 worldViewDir = normalize(UnityWorldSpaceViewDir(input.posWorld));
 						//half3 reflection = reflect(-worldViewDir, normalDirection);
 
 						half3 reflection = reflect(-viewDirection, normalDirection);
 						half4 skyData = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflection, Roughness * 9); //UNITY_SAMPLE_TEXCUBE_LOD('cubemap', 'sample coordinate', 'map-map level')
 						half3 skyColor = DecodeHDR(skyData, unity_SpecCube0_HDR); // This is done because the cubemap is stored HDR
+
+						if (_UseCustomSkybox)
+						{
+							skyData = UNITY_SAMPLE_TEXCUBE_LOD(_CustomSkybox, reflection, Roughness * 9); //UNITY_SAMPLE_TEXCUBE_LOD('cubemap', 'sample coordinate', 'map-map level')
+							//skyColor = DecodeHDR(skyData, _CustomSkybox); // This is done because the cubemap is stored HDR
+							skyColor = DecodeHDR(skyData, unity_SpecCube0_HDR); // This is done because the cubemap is stored HDR
+							adjustedCol = skyColor.rgb;
+							//_Hue = (_Hue) / 360;
+							//_Hue += 1;
+							adjustedCol = rgb2hsv(adjustedCol.rgb);
+							adjustedCol.r += _Hue;
+							adjustedCol.r %= 1;
+							adjustedCol.rgb = hsv2rgb(adjustedCol.rgb);
+
+							lum = saturate(Luminance(adjustedCol.rgb));
+							adjustedCol.rgb = lerp(adjustedCol.rgb, fixed3(lum, lum, lum), (1 - _Sat));
+
+							adjustedCol.rgb *= _Bright;
+
+							skyColor.rgb = adjustedCol;
+
+							//skyColor.rgb = lerp(skyColor.rgb, adjustedCol, adjustMask);
+						}
 
 						float skyFresnel = .7 * max(0, pow(1 - dot(viewDirection, normalDirection) * 1.4, 3));
 
@@ -379,9 +422,30 @@
 						col.a = min(1, col.a + .1 * specularReflection);
 						if (_UseEmission)
 						{
-							float3 emission = tex2D(_Emission, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw).rgb * _EmissionColor;
-							col.rgb += emission;
+							float3 emis = tex2D(_Emission, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw).rgb * _EmissionColor;
+
+							//float3 adjustedCol = col.rgb;
+							adjustedCol = emis.rgb;
+							//_Hue = (_Hue) / 360;
+							//_Hue += 1;
+							adjustedCol = rgb2hsv(adjustedCol.rgb);
+							adjustedCol.r += _Hue;
+							adjustedCol.r %= 1;
+							adjustedCol.rgb = hsv2rgb(adjustedCol.rgb);
+
+							lum = saturate(Luminance(adjustedCol.rgb));
+							adjustedCol.rgb = lerp(adjustedCol.rgb, fixed3(lum, lum, lum), (1 - _Sat));
+
+							adjustedCol.rgb *= _Bright;
+
+							//emis.rgb = lerp(emis.rgb, adjustedCol, adjustMask);
+							emis.rgb = adjustedCol;
+
+							col.rgb += emis;
+							//return float4(emis.rgb, 1);
 						}
+
+						UNITY_APPLY_FOG(input.fogCoord, col);
 
 						return float4(col.rgb, col.a * _Opacity);
 
@@ -443,7 +507,7 @@
 						float3 viewDirection = normalize(_WorldSpaceCameraPos - input.posWorld.xyz);
 						float3 lightDirection;
 
-						float3 lightColor = _LightColor0;
+						//float3 lightColor = _LightColor0;
 						#ifdef USING_DIRECTIONAL_LIGHT
 						//lightDirection = _WorldSpaceLightPos0;
 						#else
@@ -492,6 +556,8 @@
 
 						col.rgb = lerp(col.rgb * (diffuseReflection) + specularReflection, col.rgb * specularReflection * 20, metallic);
 
+						UNITY_APPLY_FOG(input.fogCoord, col);
+
 						return float4(col.rgb, 1);
 					}
 
@@ -508,7 +574,7 @@
 
 						vertex *= _AxisAdjust;
 
-						if (_QuantPos < 500)
+						if (_QuantPos < 498)
 						{
 							float4 worldVertex = mul(unity_ObjectToWorld, vertex);
 							worldVertex.x = Quantize(worldVertex.x, _QuantPos);

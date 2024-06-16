@@ -15,7 +15,7 @@
         _NormalStrength("Normal Strength", Range(0.0, 3.0)) = 1
 
         [Toggle] _UseEmission("Emission", Int) = 0
-        [NoScaleOffset] _Emission("Emission Map", 2D) = "black" {}
+        [NoScaleOffset] _Emission("Emission Map", 2D) = "white" {}
         _EmissionColor("Emission Color", Color) = (1,1,1)
 
         _MinBrightnessLight("Minimum Brightness (Light)", Range(0, 1)) = 0.533
@@ -30,11 +30,20 @@
         _ShadowSize("Shadow Size", Range(0,1)) = 0.297
         _ShadowGradient("Shadow Size", Range(0,1)) = 0
 
+        _AdjustMask("Color Adjustment mask", 2D) = "white" {}
+        _Hue("Hue", Range(0,360)) = 0
+        _Sat("Saturation", Range(0,10)) = 1
+        _Bright("Brightness", Range(0, 100)) = 1
+        _Opacity("Opacity", Range(0,1)) = 1
+
         _OutlineTex("Outline Texture", 2D) = "white" {}
+        _OutlineWidthMask("Outline Width Mask", 2D) = "white" {}
         _OutlineColor("Outline Color", Color) = (0.32, 0.32, 0.32, 1)
         _OutlineWidth("Outline Width", Range(0, 3)) = 1.03
 
-
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 2
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("ZTest", Float) = 4
+        [Enum(Off, 0, On, 1)] _ZWrite("ZWrite", Int) = 1
     }
     CGINCLUDE
     #include "UnityCG.cginc"
@@ -68,7 +77,13 @@
     uniform float _ShadowSize;
     uniform float _ShadowGradient;
 
+    uniform sampler2D _AdjustMask;
+    float _Hue;
+    float _Sat;
+    float _Bright;
+
     uniform sampler2D _OutlineTex;
+    uniform sampler2D _OutlineWidthMask;
     half _OutlineWidth;
     half4 _OutlineColor;
 
@@ -99,6 +114,74 @@
     {
         return (color - 0.5) * contrast + 0.5;
     }
+
+    float3  rgb2hsv(float3 C)
+    {
+        saturate(C);
+        float3 HSV = { 0,1,1 };
+        float _min = C.r;
+        float _med = C.g;
+        float _max = C.b;
+        float _t = 0;
+        if (_min > _med)
+        {
+            _t = _min;
+            _min = _med;
+            _med = _t;
+        }
+        if (_min > _max)
+        {
+            _t = _min;
+            _min = _max;
+            _max = _t;
+        }
+        if (_med > _max)
+        {
+            _t = _med;
+            _med = _max;
+            _max = _t;
+        }
+
+        HSV.b = _max;
+
+        float Delta = _max - _min;
+        if (_max > 0)
+        {
+            HSV.g = Delta / _max;
+        }
+
+        if (Delta > 0)
+        {
+            if (_max == C.r) HSV.r = (C.g - C.b) / Delta;
+            else if (_max == C.g) HSV.r = 2.0f + (C.b - C.r) / Delta;
+            else      HSV.r = 4.0f + (C.r - C.g) / Delta;
+        }
+        HSV.r /= 6.0f;
+
+        return HSV;
+    }
+    float3 hsv2rgb(float3 C)
+    {
+        float c = C.z * C.y;
+        float x = c * (1 - abs((C.x * 6) % 2 - 1));
+        float m = C.z - c;
+
+
+
+        float3 CC = { 0,0,0 };
+        switch (floor(C.r * 6))
+        {
+        case 0: CC = float3(c, x, 0); break;
+        case 1: CC = float3(x, c, 0); break;
+        case 2: CC = float3(0, c, x); break;
+        case 3: CC = float3(0, x, c); break;
+        case 4: CC = float3(x, 0, c); break;
+        case 5: CC = float3(c, 0, x); break;
+        }
+        CC.rgb += m;
+        return CC;
+    }
+
     struct vertexInput
     {
         float4 vertex : POSITION;
@@ -174,6 +257,8 @@
         fixed3 vLight : COLOR;
         fixed3 vLightFlat : COLOR1;
         
+        //float localOutlineWidth : FLOAT;
+
         //LIGHTING_COORDS(5, 6)
         UNITY_LIGHTING_COORDS(3, 4)
             //V2F_SHADOW_CASTER
@@ -197,10 +282,12 @@
         output.vLight = shlight;
         output.vLightFlat = shlightFlat;
         float4 clipPos = UnityObjectToClipPos(input.vertex);
+        float4 outlineWidthMask = tex2Dlod(_OutlineWidthMask, input.texcoord);
         _OutlineWidth /= 1000;
+        _OutlineWidth *= outlineWidthMask.r;
         _OutlineWidth = clamp(_OutlineWidth / (1 / clipPos.w), 0, _OutlineWidth);
         output.pos = UnityObjectToClipPos(input.vertex + input.normal * _OutlineWidth);
-
+        //output.localOutlineWidth = _OutlineWidth;
         output.posScreen = ComputeScreenPos(input.vertex);
 
 #ifdef UNITY_HALF_TEXEL_OFFSET
@@ -215,7 +302,8 @@
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float4 col = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
-
+        float adjustMask = tex2D(_AdjustMask, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw).r;
+        
         float4 encodedNormal = tex2D(_NormalMap, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
         //807fff
         encodedNormal = encodedNormal == (0, 0, 0, 1) ? (0.5, 0.5, 1, 0.5) : encodedNormal;
@@ -328,6 +416,21 @@
             col.rgb += emission;
         }
 
+        float3 adjustedCol = col.rgb;
+        _Hue = (_Hue) / 360;
+        _Hue += 1;
+        adjustedCol = rgb2hsv(adjustedCol.rgb);
+        adjustedCol.r += _Hue;
+        adjustedCol.r %= 1;
+        adjustedCol.rgb = hsv2rgb(adjustedCol.rgb);
+
+        fixed lum = saturate(Luminance(adjustedCol.rgb));
+        adjustedCol.rgb = lerp(adjustedCol.rgb, fixed3(lum, lum, lum), (1 - _Sat));
+
+        adjustedCol.rgb *= _Bright;
+
+        col.rgb = lerp(col.rgb, adjustedCol, adjustMask);
+
         return col;
     }
 
@@ -430,6 +533,14 @@
 
     float4 fragBaseOutline(vertexOutputOutline input) : COLOR
     {
+        //if (input.localOutlineWidth <= 0.0001)
+        if (tex2D(_OutlineWidthMask, input.tex).r <= 0.001)
+        {
+            clip(-1.0);
+            discard;
+        }
+
+
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float4 outlineCol = tex2D(_OutlineTex, input.tex) * _OutlineColor;
@@ -458,6 +569,11 @@
     //float4 fragAddOutline(vertexOutputOutline input) : COLOR
     float4 fragAddOutline(vertexOutputOutline input) : SV_Target
     {
+        //if (_OutlineWidth <= 0)
+        //{
+        //    clip(-1.0);
+        //    discard;
+        //}
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float4 outlineCol = tex2D(_OutlineTex, input.tex) * _OutlineColor;

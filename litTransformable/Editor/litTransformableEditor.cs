@@ -87,6 +87,16 @@ public class LitTransformableEditor : ShaderGUI
         GUIContent specularScaleLabel = new GUIContent("Specular Intensity", "Intensity of specular highlights");
         editor.ShaderProperty(specularScaleSlider, specularScaleLabel);
 
+        MaterialProperty customSkboxToggle = FindProperty("_UseCustomSkybox", properties);
+        GUIContent customSkboxToggleLabel = new GUIContent("Use custom reflections?", "when enabled, uses custom reflection map provided");
+        editor.ShaderProperty(customSkboxToggle, customSkboxToggleLabel);
+
+        if (customSkboxToggle.floatValue == 1)
+        {
+            MaterialProperty customSkybox = FindProperty("_CustomSkybox", properties);
+            GUIContent customSkyboxLabel = new GUIContent("Custom skybox", "when enabled, uses custom reflection map provided");
+            editor.TexturePropertySingleLine(customSkyboxLabel, customSkybox);
+        }
         MaterialProperty emissionToggle = FindProperty("_UseEmission", properties);
         GUIContent emissionToggleLabel = new GUIContent("Emission", "Enables a glowing texture");
         editor.ShaderProperty(emissionToggle, emissionToggleLabel);
@@ -162,7 +172,10 @@ public class LitTransformableEditor : ShaderGUI
 
         MaterialProperty zTest = FindProperty("_ZTest", properties);
         GUIContent zTestLabel = new GUIContent("ZTest", "Controls occlusion/occluding of object");
-        editor.ShaderProperty(zTest, zTestLabel);
+        editor.ShaderProperty(zTest, zTestLabel);        
+        MaterialProperty alphaToMask = FindProperty("_AlphaToMask", properties);
+        GUIContent alphaToMaskLabel = new GUIContent("AlphaToMask", "Controls depth writing according to transparency");
+        editor.ShaderProperty(alphaToMask, alphaToMaskLabel);
 
         editor.RenderQueueField();
 

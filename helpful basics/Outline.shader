@@ -1,4 +1,4 @@
-Shader "Outline" 
+Shader "Outline"
 {
     //this shader just gives an outline to a flat colored model
     //to see this in further detail, you can look at Scooton_2
@@ -14,9 +14,9 @@ Shader "Outline"
         _OutlineWidth("Outline Width", Range(0, 0.1)) = 0.03
 
     }
-    CGINCLUDE
-    #include "UnityCG.cginc"
-    struct vertexInput
+        CGINCLUDE
+#include "UnityCG.cginc"
+        struct vertexInput
     {
         float4 vertex : POSITION;
         float4 texcoord : TEXCOORD0;
@@ -30,10 +30,10 @@ Shader "Outline"
         float4 color : COLOR;
     };
     ENDCG
-    Subshader
+        Subshader
     {
-            
-   
+
+
 
         Pass
         {
@@ -76,7 +76,7 @@ Shader "Outline"
             half4 _OutlineColor;
 
 
-            float4 vert(float4 position : POSITION, float3 normal : NORMAL) : SV_POSITION 
+            float4 vert(float4 position : POSITION, float3 normal : NORMAL) : SV_POSITION
             {
                 position.xyz += normal * _OutlineWidth;//offset vertex positions outwards by _OutlineWidth
                 return UnityObjectToClipPos(position);

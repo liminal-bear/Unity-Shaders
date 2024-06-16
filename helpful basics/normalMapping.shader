@@ -1,4 +1,4 @@
-Shader "normalMapping"
+﻿Shader "normalMapping"
 {
 
 	//shader to demonstrate sampling a normal map, adjusting it, and utilizing the results in lighting

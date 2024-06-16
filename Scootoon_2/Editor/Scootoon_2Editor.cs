@@ -124,6 +124,24 @@ public class Scootoon_2Editor : ShaderGUI
         GUIContent shadowGradientLabel = new GUIContent("Shadow Gradient", "Sharpness of shadow");
         editor.ShaderProperty(shadowGradient, shadowGradientLabel);
 
+        GUILayout.Label(" ", EditorStyles.boldLabel);
+        GUILayout.Label("FX", EditorStyles.boldLabel);
+
+        MaterialProperty adjustMask = FindProperty("_AdjustMask", properties);
+        GUIContent adjustMaskLabel = new GUIContent("Color adjustment mask", "determines where colors should be adjusted");
+        editor.TexturePropertySingleLine(adjustMaskLabel, adjustMask);
+
+        MaterialProperty hue = FindProperty("_Hue", properties);
+        GUIContent hueLabel = new GUIContent("Hue", "Hue color adjust");
+        editor.ShaderProperty(hue, hueLabel);
+
+        MaterialProperty sat = FindProperty("_Sat", properties);
+        GUIContent satLabel = new GUIContent("Sat", "Saturation color adjust");
+        editor.ShaderProperty(sat, satLabel);
+
+        MaterialProperty bright = FindProperty("_Bright", properties);
+        GUIContent brightLabel = new GUIContent("Brightness", "Brightness color adjust");
+        editor.ShaderProperty(bright, brightLabel);
 
         GUILayout.Label(" ", EditorStyles.boldLabel);
         GUILayout.Label("Outlines", EditorStyles.boldLabel);
@@ -134,6 +152,10 @@ public class Scootoon_2Editor : ShaderGUI
         MaterialProperty outlineColor = FindProperty("_OutlineColor", properties);
         GUIContent outlineColorLabel = new GUIContent("Outline Color", "Color of outline");
         editor.TexturePropertySingleLine(OutlineTexLabel, OutlineTex, outlineColor);
+
+        MaterialProperty OutlineWidthMask = FindProperty("_OutlineWidthMask", properties);
+        GUIContent OutlineWidthMaskLabel = new GUIContent("Outline Width Mask", "Color of outline");
+        editor.TexturePropertySingleLine(OutlineWidthMaskLabel, OutlineWidthMask);
 
         MaterialProperty outlineWidth = FindProperty("_OutlineWidth", properties);
         GUIContent outlineLabel = new GUIContent("Outline Width", "Width of outline");

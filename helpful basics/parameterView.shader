@@ -61,11 +61,12 @@
                 float4 pos : SV_POSITION;
                 float4 posWorld : TEXCOORD0;
                 float4 screenPos : TEXCOORD1;
+                float4 posObj : TEXCOORD2;
                 // position of the vertex (and fragment) in world space 
-                float4 tex : TEXCOORD2;
-                float3 tangentWorld : TEXCOORD3;
-                float3 normalWorld : TEXCOORD4;
-                float3 binormalWorld : TEXCOORD5;
+                float4 tex : TEXCOORD3;
+                float3 tangentWorld : TEXCOORD4;
+                float3 normalWorld : TEXCOORD5;
+                float3 binormalWorld : TEXCOORD6;
                 //fixed3 vLight : COLOR;
                 //LIGHTING_COORDS(5, 6)
                     //UNITY_LIGHTING_COORDS(6, 7)
@@ -91,6 +92,7 @@
                 output.tex = input.texcoord;
                 output.pos = UnityObjectToClipPos(input.vertex);
                 output.screenPos = ComputeScreenPos(output.pos);
+                output.posObj = input.vertex;
 
                 half3 worldN = UnityObjectToWorldNormal(input.normal);
                 half3 shlight = ShadeSH9(float4(worldN, 1.0));
