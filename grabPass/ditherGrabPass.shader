@@ -45,13 +45,13 @@
 		return (input.r + input.g + input.b) / 3;
 	}
 
-	struct vertexInput
+	struct appdata
 {
 		float4 vertex : POSITION;
 		float2 uv : TEXCOORD0;
 	};
 
-	struct vertexOutput
+	struct v2f
 	{
 		float4 uv : TEXCOORD0;
 		float4 vertex : SV_POSITION;
@@ -135,9 +135,9 @@
 		return lerp(color1, color2, mixAmt);
 	}
 
-	vertexOutput vert(vertexInput input)
+	v2f vert(appdata input)
 	{
-		vertexOutput output;
+		v2f output;
 		output.vertex = UnityObjectToClipPos(input.vertex);
 
 		output.distance.x = output.vertex.w;
@@ -160,7 +160,7 @@
 	}
 
 
-			fixed4 frag(vertexOutput input) : SV_Target
+			fixed4 frag(v2f input) : SV_Target
 			{
 
 				if (_RenderMode > 0)

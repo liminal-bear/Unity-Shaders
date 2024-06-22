@@ -29,24 +29,24 @@
 			  #pragma vertex vert
 			  #pragma fragment frag
 
-			  struct vertexInput
+			  struct appdata
 			  {
 				  float4 vertex : POSITION;
 			  };
-			  struct vertexOutput
+			  struct v2f
 			  {
 				  float4 pos : SV_POSITION;
 			  };
 			  //CustomEditor "Scootoon_2Editor"
-			  vertexOutput vert(vertexInput input)
+			  v2f vert(appdata input)
 			  {
-					vertexOutput output;
+					v2f output;
 					output.pos = fixed4(0,0,0,0);
 
 					return output;
 			  }
 
-			  float4 frag(vertexOutput input) : COLOR
+			  float4 frag(v2f input) : COLOR
 			  {
 					discard;
 					return fixed4(0, 0, 0, 0);

@@ -26,7 +26,6 @@
 	uniform float _Brightness;
 	uniform float _Alpha;
 
-
 	ENDCG
 	SubShader
 	{
@@ -43,7 +42,7 @@
 			//face culling and depth buffer settings
 			Cull[_Cull]
 			ZWrite[_ZWrite]
-			Ztest[_ZTest]
+			ZTest[_ZTest]
 
 			//blend
 			blend[_SrcBlend] [_DstBlend]
@@ -52,60 +51,60 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			struct vertexInput
+			struct appdata
 			{
 				float4 vertex : POSITION;
 				float4 texcoord : TEXCOORD0;
 				float3 normal : NORMAL;
 				float4 tangent : TANGENT;
 			};
-			struct vertexOutput
+			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				//float4 posWorld : TEXCOORD0;
 				//float4 posObj : TEXCOORD1;
 				// position of the vertex (and fragment) in world space 
-				float4 tex : TEXCOORD2;
+				float4 tex : TEXCOORD0;
 				//float3 tangentWorld : TEXCOORD3;
 				//float3 normalWorld : TEXCOORD4;
 				//float3 binormalWorld : TEXCOORD5;
 			};
 			//CustomEditor "Scootoon_2Editor"
-			vertexOutput vert(vertexInput input)
+			v2f vert(appdata input)
 			{
-					vertexOutput output;
+				v2f output;
 
-					//float4x4 modelMatrix = unity_ObjectToWorld;
-					//float4x4 modelMatrixInverse = unity_WorldToObject;
+				//float4x4 modelMatrix = unity_ObjectToWorld;
+				//float4x4 modelMatrixInverse = unity_WorldToObject;
 
-					//output.tangentWorld = normalize(
-					//	mul(modelMatrix, float4(input.tangent.xyz, 0.0)).xyz);
-					//output.normalWorld = normalize(
-					//	mul(float4(input.normal, 0.0), modelMatrixInverse).xyz);
-					//output.binormalWorld = normalize(
-					//	cross(output.normalWorld, output.tangentWorld)
-					//	* input.tangent.w); // tangent.w is specific to Unity
+				//output.tangentWorld = normalize(
+				//	mul(modelMatrix, float4(input.tangent.xyz, 0.0)).xyz);
+				//output.normalWorld = normalize(
+				//	mul(float4(input.normal, 0.0), modelMatrixInverse).xyz);
+				//output.binormalWorld = normalize(
+				//	cross(output.normalWorld, output.tangentWorld)
+				//	* input.tangent.w); // tangent.w is specific to Unity
 
-					////output.posWorld = mul(modelMatrix, input.vertex);
-					//output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
-					output.tex = input.texcoord;
-					output.pos = UnityObjectToClipPos(input.vertex);
-					//output.posObj = input.vertex;
-					////float4 worldN = mul((float3x3)unity_ObjectToWorld, input.normal);
-					////half3 worldN = mul((float3x3)unity_ObjectToWorld, float4(input.normal.x, input.normal.y, input.normal.z, 0.0));
-					//half3 worldN = UnityObjectToWorldNormal(input.normal);
-					//half3 shlight = ShadeSH9(float4(worldN, 1.0));
+				////output.posWorld = mul(modelMatrix, input.vertex);
+				//output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
+				output.tex = input.texcoord;
+				output.pos = UnityObjectToClipPos(input.vertex);
+				//output.posObj = input.vertex;
+				////float4 worldN = mul((float3x3)unity_ObjectToWorld, input.normal);
+				////half3 worldN = mul((float3x3)unity_ObjectToWorld, float4(input.normal.x, input.normal.y, input.normal.z, 0.0));
+				//half3 worldN = UnityObjectToWorldNormal(input.normal);
+				//half3 shlight = ShadeSH9(float4(worldN, 1.0));
 
-					return output;
+				return output;
 			}
 
-			float4 frag(vertexOutput input) : COLOR
+			float4 frag(v2f input) : COLOR
 			{
-					half4 color = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
+				half4 color = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 
-					color.rgb *= _Brightness; //same as color.rgb = color.rgb * _Brightness
-					color.a = _Alpha;
-					return color;
+				color.rgb *= _Brightness; //same as color.rgb = color.rgb * _Brightness
+				color.a = _Alpha;
+				return color;
 			}
 			ENDCG
 		}

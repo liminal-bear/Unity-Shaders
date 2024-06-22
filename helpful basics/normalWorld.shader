@@ -130,7 +130,7 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			struct vertexInput
+			struct appdata
 			{
 				float4 vertex : POSITION;
 				float2 texcoord : TEXCOORD0;
@@ -138,7 +138,7 @@
 				float4 tangent : TANGENT;
 
 			};
-			struct vertexOutput
+			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				float4 posWorld : TEXCOORD0;
@@ -157,9 +157,9 @@
 				float  depth : TEXCOORD8;
 			};
 			//CustomEditor "Scootoon_2Editor"
-			vertexOutput vert (vertexInput v)
+			v2f vert (appdata v)
 			{
-				vertexOutput output;
+				v2f output;
 				// o.pos = UnityObjectToClipPos(v.vertex);
 				output.pos = UnityObjectToClipPos(v.vertex);
 				output.tex = TRANSFORM_TEX(v.texcoord, _MainTex);
@@ -178,7 +178,7 @@
 				return output;
 			}
 
-			float4 frag (vertexOutput input) : SV_Target
+			float4 frag (v2f input) : SV_Target
 			{
 				float4 encodedNormal = tex2D(_NormalMap,input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 				//807fff

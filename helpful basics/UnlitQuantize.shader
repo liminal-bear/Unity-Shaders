@@ -46,14 +46,14 @@ Shader "UnlitBaseQuantize"
 			  #pragma vertex vert
 			  #pragma fragment frag
 
-			  struct vertexInput
+			  struct appdata
 			  {
 				  float4 vertex : POSITION;
 				  float4 texcoord : TEXCOORD0;
 				  float3 normal : NORMAL;
 				  float4 tangent : TANGENT;
 			  };
-			  struct vertexOutput
+			  struct v2f
 			  {
 				  float4 pos : SV_POSITION;
 				  float4 posWorld : TEXCOORD0;
@@ -61,9 +61,9 @@ Shader "UnlitBaseQuantize"
 				  // position of the vertex (and fragment) in world space 
 				  float4 tex : TEXCOORD2;
 			  };
-			  vertexOutput vert(vertexInput input)
+			  v2f vert(appdata input)
 			  {
-					vertexOutput output;
+					v2f output;
 
 					//output.posWorld = mul(modelMatrix, input.vertex);
 					output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
@@ -94,7 +94,7 @@ Shader "UnlitBaseQuantize"
 					return output;
 			  }
 
-			  float4 frag(vertexOutput input) : COLOR
+			  float4 frag(v2f input) : COLOR
 			  {
 				     half4 col = tex2D(_MainTex, input.tex.xy);
 

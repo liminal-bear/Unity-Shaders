@@ -57,21 +57,21 @@ Shader "CRT Full"
 				float3 worldPos;
 			};
 
-			struct vertexInput
+			struct appdata
 			{
 				fixed4 vertex : POSITION;
 				fixed2 uv : TEXCOORD0;
 			};
 
-			struct fragInput
+			struct v2f
 			{
 				fixed2 uv : TEXCOORD0;
 				fixed4 vertex : SV_POSITION;
 			};
 
-			fragInput vert(vertexInput v)
+			v2f vert(appdata v)
 			{
-				fragInput o;
+				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = (v.uv); //* _MainTex_ST.xy) + _MainTex_ST.zw;
 				return o;
@@ -92,7 +92,7 @@ Shader "CRT Full"
 				return newuv;
 			}
 
-			fixed4 frag(fragInput i) : SV_Target
+			fixed4 frag(v2f i) : SV_Target
 			{
 				fixed2 distortionUV = LensDistortion(i.uv);
 			    //fixed2 lcdUV = (i.uv * _LCDTex_ST.xy) + _LCDTex_ST.zw;

@@ -236,7 +236,7 @@ Shader "worldHatch2"
 		return lerp(color1, color2, col.r);
 	}
 
-	struct vertexInput
+	struct appdata
 	{
 		float4 vertex : POSITION;
 		float4 texcoord : TEXCOORD0;
@@ -263,7 +263,7 @@ Shader "worldHatch2"
 			//V2F_SHADOW_CASTER
 	};
 
-	vertexOutput vert(vertexInput input)
+	vertexOutput vert(appdata input)
 	{
 		vertexOutput output;
 

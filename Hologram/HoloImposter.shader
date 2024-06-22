@@ -247,14 +247,14 @@ Shader "Unlit/HologramImposter"
             }
         }
 
-        struct vertexInput
+        struct appdata
         {
             float4 vertex : POSITION;
             float4 texcoord : TEXCOORD0;
             float3 normal : NORMAL;
             float4 tangent : TANGENT;
         };
-        struct vertexOutput
+        struct v2f
         {
             float4 pos : SV_POSITION;
             float4 posObj: TEXCOORD0;
@@ -265,9 +265,9 @@ Shader "Unlit/HologramImposter"
         };
 
 
-        vertexOutput vert(vertexInput input)
+        v2f vert(appdata input)
         {
-            vertexOutput output;
+            v2f output;
             //output.pos = UnityObjectToClipPos(input.vertex);
             //// billboard mesh towards camera
             //float3 vpos = mul((float3x3)unity_ObjectToWorld, input.vertex.xyz);
@@ -320,7 +320,7 @@ Shader "Unlit/HologramImposter"
             return output;
         }
 
-        fixed4 frag(vertexOutput input) : SV_Target
+        fixed4 frag(v2f input) : SV_Target
         {
 
 

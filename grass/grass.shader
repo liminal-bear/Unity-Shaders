@@ -60,7 +60,7 @@ Shader "grass"
                 //    float4 vertex : POSITION;
                 //};
 
-                struct vertexInput {
+                struct appdata {
                     float4 vertex : POSITION;
                     float4 tangent : TANGENT;
                     float3 normal : NORMAL;
@@ -71,7 +71,7 @@ Shader "grass"
                     fixed4 color : COLOR;
                 };
 
-                struct vertexOutput {
+                struct v2f {
                     float4 pos : SV_POSITION;
                     float4 posWorld : TEXCOORD0;
                     float4 posObj : TEXCOORD1;
@@ -99,9 +99,9 @@ Shader "grass"
                     c = 1 + r5 * cos8.x + r6 * cos8.y + r7 * cos8.z + r8 * cos8.w;
                 }
 
-                vertexOutput vert(vertexInput v) 
+                v2f vert(appdata v) 
                 {
-                    vertexOutput output;
+                    v2f output;
                     //output.normal = float4(v.normal, 1.0);
                     float factor = (1 - _ShakeDisplacement - v.color.r) * 0.5;
                     //fixed4 color = tex2Dlod(_DispTex, v.vertex);
@@ -166,7 +166,7 @@ Shader "grass"
                 }
 
 
-                float4 frag(vertexOutput input) : COLOR
+                float4 frag(v2f input) : COLOR
                 {
                    float4 col = tex2D(_Shape, input.tex.xy);
                    float3 col2 = tex2D(_Detail, input.tex.xy);

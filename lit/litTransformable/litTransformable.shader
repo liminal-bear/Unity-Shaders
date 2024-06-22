@@ -99,14 +99,14 @@
 				return round(num * quantize) / quantize;
 			}
 
-			struct vertexInput
+			struct appdata
 			{
 				float4 vertex : POSITION;
 				float4 texcoord : TEXCOORD0;
 				float3 normal : NORMAL;
 				float4 tangent : TANGENT;
 			};
-			struct vertexOutput
+			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				float4 posWorld : TEXCOORD0;
@@ -123,9 +123,9 @@
 				UNITY_FOG_COORDS(7)
 			};
 
-			vertexOutput vert(vertexInput input)
+			v2f vert(appdata input)
 			{
-				vertexOutput output;
+				v2f output;
 
 				float4x4 modelMatrix = unity_ObjectToWorld;
 				float4x4 modelMatrixInverse = unity_WorldToObject;
@@ -268,7 +268,7 @@
 					#pragma target 3.0
 					#pragma multi_compile_fog
 
-					float4 frag(vertexOutput input) : COLOR
+					float4 frag(v2f input) : COLOR
 					{
 						// in principle we have to normalize tangentWorld,
 						// binormalWorld, and normalWorld again; however, the 
@@ -478,7 +478,7 @@
 
 
 
-					float4 frag(vertexOutput input) :SV_Target
+					float4 frag(v2f input) :SV_Target
 					{
 						float4 col = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 						float colGrayscale = (col.r + col.g + col.b) / 3.0;

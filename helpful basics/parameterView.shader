@@ -48,7 +48,7 @@
             #pragma vertex vert  
             #pragma fragment frag
 
-            struct vertexInput
+            struct appdata
             {
                     float4 vertex : POSITION;
                     float4 texcoord : TEXCOORD0;
@@ -56,7 +56,7 @@
                     float4 tangent : TANGENT;
             };
 
-            struct vertexOutput
+            struct v2f
             {
                 float4 pos : SV_POSITION;
                 float4 posWorld : TEXCOORD0;
@@ -73,9 +73,9 @@
                     //V2F_SHADOW_CASTER
             };
 
-            vertexOutput vert(vertexInput input)
+            v2f vert(appdata input)
             {
-                vertexOutput output;
+                v2f output;
 
                 float4x4 modelMatrix = unity_ObjectToWorld;
                 float4x4 modelMatrixInverse = unity_WorldToObject;
@@ -101,7 +101,7 @@
 
             }
 
-            float4 frag(vertexOutput input) : COLOR
+            float4 frag(v2f input) : COLOR
             {
                 if (_Category == 0)
                 {

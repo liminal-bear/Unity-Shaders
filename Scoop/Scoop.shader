@@ -147,7 +147,7 @@
     }
 
     //unity provided struct (vertex, uv map, normal, tangent)
-    struct vertexInput
+    struct appdata
     {
         float4 vertex : POSITION;
         float4 texcoord : TEXCOORD0;
@@ -155,8 +155,8 @@
         float4 tangent : TANGENT;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
-    //processed vertexInput -> vertexOutput
-    struct vertexOutput
+    //processed appdata -> v2f
+    struct v2f
     {
         float4 pos : SV_POSITION;
         float4 posWorld : TEXCOORD0;
@@ -175,12 +175,12 @@
     };
 
   
-    vertexOutput vert(vertexInput input)
+    v2f vert(appdata input)
     {
-        vertexOutput output;
+        v2f output;
 
         UNITY_SETUP_INSTANCE_ID(input);
-        UNITY_INITIALIZE_OUTPUT(vertexOutput, output);
+        UNITY_INITIALIZE_OUTPUT(v2f, output);
         //vr rendering
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
@@ -217,7 +217,7 @@
 
     //frag base is for directional + ambient + baked light probes
     //frag add (removed from this shader) any extra lights (point, spot)
-    float4 fragBase(vertexOutput input) : COLOR
+    float4 fragBase(v2f input) : COLOR
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

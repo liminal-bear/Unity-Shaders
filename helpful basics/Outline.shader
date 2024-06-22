@@ -16,14 +16,14 @@ Shader "Outline"
     }
         CGINCLUDE
 #include "UnityCG.cginc"
-        struct vertexInput
+        struct appdata
     {
         float4 vertex : POSITION;
         float4 texcoord : TEXCOORD0;
         float3 normal : NORMAL;
         float4 tangent : TANGENT;
     };
-    struct vertexOutput
+    struct v2f
     {
         float4 pos : SV_POSITION;
         float4 posWorld : TEXCOORD0;
@@ -44,15 +44,15 @@ Shader "Outline"
             #pragma fragment frag
             //#pragma multi_compile_fwdbase
             //#pragma target 3.0
-            vertexOutput vert(vertexInput input)
+            v2f vert(appdata input)
             {
-                vertexOutput output;
+                v2f output;
                 output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
                 //output.tex = input.texcoord;
                 output.pos = UnityObjectToClipPos(input.vertex);
                 return output;
             }
-            float4 frag(vertexOutput input) : COLOR
+            float4 frag(v2f input) : COLOR
             {
                     float4 col = float4(1,1,1,1);
 

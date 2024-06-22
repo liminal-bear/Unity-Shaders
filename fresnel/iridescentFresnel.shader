@@ -139,7 +139,7 @@
             #pragma fragment frag
             #include "UnityCG.cginc"
             // Add includes and function declarations here
-            struct vertexInput
+            struct appdata
             {
                 float4 vertex : POSITION;
                 float4 texcoord : TEXCOORD0;
@@ -147,7 +147,7 @@
                 float4 tangent : TANGENT;
             };
 
-            struct vertexOutput
+            struct v2f
             {
                 float4 pos : SV_POSITION;
                 float4 posWorld : TEXCOORD0;
@@ -158,10 +158,10 @@
                 float3 binormalWorld : TEXCOORD4;
             };
 
-            vertexOutput vert(vertexInput input)
+            v2f vert(appdata input)
             {
 
-                vertexOutput output;
+                v2f output;
 
                 float4x4 modelMatrix = unity_ObjectToWorld;
                 float4x4 modelMatrixInverse = unity_WorldToObject;
@@ -185,7 +185,7 @@
                 return output;
             }
 
-            float4 frag(vertexOutput input) : COLOR
+            float4 frag(v2f input) : COLOR
             {
                 // Calculate the surface normal and view direction
                 // ...

@@ -53,14 +53,14 @@
 			  #pragma vertex vert
 			  #pragma fragment frag
 
-			  struct vertexInput
+			  struct appdata
 			  {
 				  float4 vertex : POSITION;
 				  float4 texcoord : TEXCOORD0;
 				  float3 normal : NORMAL;
 				  float4 tangent : TANGENT;
 			  };
-			  struct vertexOutput
+			  struct v2f
 			  {
 				  float4 pos : SV_POSITION;
 				  float4 posWorld : TEXCOORD0;
@@ -75,9 +75,9 @@
 				  LIGHTING_COORDS(5, 6)
 			  };
 			  //CustomEditor "Scootoon_2Editor"
-			  vertexOutput vert(vertexInput input)
+			  v2f vert(appdata input)
 			  {
-					vertexOutput output;
+					v2f output;
 
 					float4x4 modelMatrix = unity_ObjectToWorld;
 					float4x4 modelMatrixInverse = unity_WorldToObject;
@@ -106,7 +106,7 @@
 					return output;
 			  }
 
-			  float4 frag(vertexOutput input) : COLOR
+			  float4 frag(v2f input) : COLOR
 			  {
 
 					float4 encodedNormal = tex2D(_NormalMap,input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);

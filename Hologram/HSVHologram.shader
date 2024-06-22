@@ -1,4 +1,4 @@
-﻿Shader "Hologram"
+﻿Shader "HologramHSV"
 {
 	//hologram shader
 	Properties
@@ -8,23 +8,27 @@
 		_Tint("Tint Color", Color) = (0,.61,.55)
 		_RimTint("RimTint Color", Color) = (0,.61,.55)
 		_Opacity("Opacity", Range(0,1)) = 1
+		_CutoutOpacity("CutoutOpacity", Range(0,1)) = 0
 		_Hue("Hue", Range(0, 360)) = 0
 		_Sat("Saturation", Range(0, 10)) = 1
 		_Brightness("Brightness", Range(1, 40)) = 9.15
 
-
 		//primary lines
-		[Toggle] _Axis("Vertical or Horizontal?", Float) = 0
+		[Toggle] _Axis("Vertical or Horizontal?", Float) = 1
 		[Toggle] _LineSpace("Screenspace or object space?", Float) = 0
 		_Density("Line Density", Range(0,100)) = 2.61
-		_Distortion("model Distortion", Range(0,1)) = 0.02
 		_LineSpeed("Line Speed", Range(-100,100)) = 8.91
-		_Flicker("Flickering", Range(100,1000)) = 100
-		_FlickerStrength("Flicker Strength", Range(1,10)) = 2.7
+		_Flicker("Flickering", Range(0,1000)) = 100
+		_FlickerStrength("Flicker Strength", Range(0,10)) = 2.7
+
+		//primary lines
+		[Toggle] _DistortAxis("Distortion Vertical or Horizontal?", Float) = 1
+		_Distortion("model Distortion", Range(0,1)) = 0.02
+		_DistortionSpeed("_Distortion Speed", Range(-10,10)) = 0.3
 
 		//secondary lines
-		_Density2("Secondary flicker Density", Range(0,100)) = 7
-		_Quantize("Secondary flicker smoothness ", Range(1,100)) = 2
+		_Density2("Secondary flicker Density", Range(0,1000)) = 7
+		_Smoothness("Secondary flicker smoothness ", Range(1,100)) = 2
 		_LineSpeed2("Secondary flicker Speed", Range(-10,10)) = 3.7
 		_Brightness2("secondary flicker brightness", Range(1, 10)) = 4.55
 
@@ -46,9 +50,10 @@
 	float _Hue;
 	float _Sat;
 	fixed4 _RimTint;
-	float _Axis, _LineSpace, _Opacity;
-	half _Density, _Density2, _Distortion, _LineSpeed,  _LineSpeed2, _Flicker, _FlickerStrength, _Brightness, _Brightness2, _RimSize, _RimBrightness;
-	int _Quantize;
+	float _Axis, _LineSpace, _Opacity, _CutoutOpacity;
+	float _DistortAxis, _Distortion, _DistortionSpeed;
+	half _Density, _Density2,  _LineSpeed,  _LineSpeed2, _Flicker, _FlickerStrength, _Brightness, _Brightness2, _RimSize, _RimBrightness;
+	int _Smoothness;
 
 	//psuedo random number generator
 	float random(float2 seed)
@@ -158,7 +163,7 @@
 				float3 normal : NORMAL;
 				float4 tangent : TANGENT;
 			};
-			struct vertexOutput
+			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				float4 posWorld : TEXCOORD0;
@@ -172,17 +177,12 @@
 				//float3 normalWorld : TEXCOORD5;
 				//float3 binormalWorld : TEXCOORD6;
 			};
-			vertexOutput vert(vertexInput input)
+			v2f vert(vertexInput input)
 			{
-				vertexOutput output;
+				v2f output;
 
-				float4x4 modelMatrix = unity_ObjectToWorld;
-				float4x4 modelMatrixInverse = unity_WorldToObject;
-
-				output.normal = normalize(
-					mul(float4(input.normal, 0.0), modelMatrixInverse).xyz);
-				output.viewDir = normalize(_WorldSpaceCameraPos
-					- mul(modelMatrix, input.vertex).xyz);
+				output.normal = normalize(mul(float4(input.normal, 0.0), unity_WorldToObject).xyz);
+				output.viewDir = normalize(_WorldSpaceCameraPos - mul(unity_ObjectToWorld, input.vertex).xyz);
 
 				//output.tangentWorld = normalize(
 				//	mul(modelMatrix, float4(input.tangent.xyz, 0.0)).xyz);
@@ -200,24 +200,34 @@
 
 
 				//distortion amount, uses modifies the local coordinate, by an amount specified by noise and _Distortion
+				//because we are in the vertex shader, we must use the tex2Dlod to access the texture
 				//float4 adjustedDimension = 0.01 * sin(_LineSpeed * _Time.y + output.posWorld.x * _Density);
-				float adjustedDimension = _Distortion * (0.5 - tex2Dlod(_NoiseTex, float4(output.posObj.xy + _Time.y, 0, 0)));
+				float adjustedDimension = _Distortion * (tex2Dlod(_NoiseTex, float4(output.posObj.xy + _Time.y*_DistortionSpeed, 0, 0)));
 
-				input.vertex.x += adjustedDimension;
+				if(_DistortAxis == 1)
+				{
+					input.vertex.x += adjustedDimension;
+				}
+				else
+				{
+					input.vertex.y += adjustedDimension;
+				}
 
 				output.pos = UnityObjectToClipPos(input.vertex);
 				output.screenPos = ComputeScreenPos(output.pos);
 				//output.pos = UnityObjectToClipPos(newVertexPos);
 				//float4 worldN = mul((float3x3)unity_ObjectToWorld, input.normal);
 				//half3 worldN = mul((float3x3)unity_ObjectToWorld, float4(input.normal.x, input.normal.y, input.normal.z, 0.0));
-				half3 worldN = UnityObjectToWorldNormal(input.normal);
 				//half3 shlight = ShadeSH9(float4(worldN, 1.0));
 
 				return output;
 			}
 
-			float4 frag(vertexOutput input) : COLOR
+			float4 frag(v2f input) : COLOR
 			{
+					float distortCol = _Distortion * (tex2Dlod(_NoiseTex, float4(input.posObj.xy + _Time.y*_DistortionSpeed, 0, 0)));
+					// return float4(distortCol,distortCol,distortCol,1);
+
 				    float4 col = tex2D(_MainTex, input.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 					col.rgb = clamp(col.rgb * 0.5 + 0.5 * col.rgb * 3.2, 0.0, 1.0);
 					col.rgb *= _Tint.rgb;
@@ -227,30 +237,26 @@
 					//if statement for determining scan line space
 					//screenspace is pretty good, but since it's dependent on screenspace, then it might rotate wrongly when your head is 90degrees
 					//object space is dependent on the model, and is in line with the model, without respect to head rotation
-					//however, object space has different line thicknesses at different points in the model, due to how cross sections get more material at the boundry
+					//however, object space is taking cross sections of the model, and might appear warped as it scrolls down flat areas
 					if (_LineSpace == 0)
 					{
 						PrimaryPos = input.pos[_Axis];
+						_Density2 /= 1000;
 					}
 					else
 					{
 						PrimaryPos = input.posObj[_Axis];
-						_Density *= 50;
+						_Density *= 1000;
 					}
 
 					 
 
-					//col.rgb *= 0.9 + 0.1 * sin(_LineSpeed * _Time.y + input.pos.x * _Density);
-					col.rgb *= 0.9 + 0.1 * sin(_LineSpeed * _Time.y + PrimaryPos.x * _Density);
 
-
-
-					float adjustment = _Distortion * (0.5 - tex2D(_NoiseTex, input.posObj.xy));
 					//lines
 					//col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density))) > 0.9 ? 1 : 0;
 
 					//col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density))) > 0.9 ? 1 : 0;
-					col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((PrimaryPos + adjustment)* _Density))) > 0.9 ? 1 : 0;
+					col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((PrimaryPos )* _Density))) > 0.9 ? 1 : 0;
 					col.a = _Density == 0 ? 1 : col.a;
 
 					//col.a = 0.5 + sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density));
@@ -269,10 +275,13 @@
 					//col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + (random(_Time.w)) * _Density)) > 0.9 ? 1 : 0;
 					//col.a = random(input.posObj.y * 9 % 2) > 0.5 ? 1 : 0;
 					 
-					//secondary flicker
-					col.rgb *= 0.9 + 0.1 * _Brightness2 * round(sin(_LineSpeed2 * _Time.y + input.posWorld.y * _Density2) * _Quantize) / _Quantize;
 					// Flicker
 					col.rgb *= 0.97 + 0.03 * _FlickerStrength * sin(_Flicker * _Time.y);
+
+					//secondary flicker
+					col.rgb *= 0.9 + 0.1 * _Brightness2 * round(sin(_LineSpeed2 * _Time.y + PrimaryPos * _Density2) * _Smoothness) / _Smoothness;
+					
+		
 
 					//rim lighting
 					float3 normalDirection = normalize(input.normal);
@@ -302,7 +311,7 @@
 					col.rgb = adjustedCol;
 
 
-					col.a *= _Opacity;
+					col.a = lerp(_CutoutOpacity, _Opacity, col.a);
 					//col.a = 1;
 					return col;
 			}

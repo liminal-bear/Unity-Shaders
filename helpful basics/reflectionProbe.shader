@@ -34,14 +34,14 @@
 			  #pragma vertex vert
 			  #pragma fragment frag
 
-			  struct vertexInput
+			  struct appdata
 			  {
 				  float4 vertex : POSITION;
 				  float4 texcoord : TEXCOORD0;
 				  float3 normal : NORMAL;
 				  float4 tangent : TANGENT;
 			  };
-			  struct vertexOutput
+			  struct v2f
 			  {
 				  float4 pos : SV_POSITION;
 				  float4 posWorld : TEXCOORD0;
@@ -52,9 +52,9 @@
 				  float3 normalWorld : TEXCOORD3;
 				  //float3 binormalWorld : TEXCOORD5;
 			  };
-			  vertexOutput vert(vertexInput input)
+			  v2f vert(appdata input)
 			  {
-					vertexOutput output;
+					v2f output;
 
 					float4x4 modelMatrix = unity_ObjectToWorld;
 					float4x4 modelMatrixInverse = unity_WorldToObject;
@@ -80,7 +80,7 @@
 					return output;
 			  }
 
-			  float4 frag(vertexOutput input) : COLOR
+			  float4 frag(v2f input) : COLOR
 			  {
 			         half3 worldViewDir = normalize(UnityWorldSpaceViewDir(input.posWorld)); //Direction of ray from the camera towards the object surface
 					 half3 reflection = reflect(-worldViewDir, input.normalWorld); // Direction of ray after hitting the surface of object

@@ -182,7 +182,7 @@
         return CC;
     }
 
-    struct vertexInput
+    struct appdata
     {
         float4 vertex : POSITION;
         float4 texcoord : TEXCOORD0;
@@ -190,7 +190,7 @@
         float4 tangent : TANGENT;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
-    struct vertexOutput
+    struct v2f
     {
         float4 pos : SV_POSITION;
         float4 posWorld : TEXCOORD0;
@@ -209,13 +209,13 @@
     };
 
   
-    vertexOutput vert(vertexInput input)
+    v2f vert(appdata input)
     {
 
-        vertexOutput output;
+        v2f output;
 
         UNITY_SETUP_INSTANCE_ID(input);
-        UNITY_INITIALIZE_OUTPUT(vertexOutput, output);
+        UNITY_INITIALIZE_OUTPUT(v2f, output);
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
         float4x4 modelMatrix = unity_ObjectToWorld;
@@ -247,7 +247,7 @@
         return output;
     }
 
-    struct vertexOutputOutline
+    struct v2fOutline
     {
         float4 pos : SV_POSITION;
         float4 posWorld : TEXCOORD0;
@@ -266,12 +266,12 @@
         UNITY_VERTEX_OUTPUT_STEREO
     };
 
-    vertexOutputOutline outlineVert(vertexInput input)
+    v2fOutline outlineVert(appdata input)
     {
-        vertexOutputOutline output;
+        v2fOutline output;
 
         UNITY_SETUP_INSTANCE_ID(input); //Insert
-        UNITY_INITIALIZE_OUTPUT(vertexOutputOutline, output); //Insert
+        UNITY_INITIALIZE_OUTPUT(v2fOutline, output); //Insert
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
         output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
@@ -297,7 +297,7 @@
         return output;
     }
 
-    float4 fragBase(vertexOutput input) : COLOR
+    float4 fragBase(v2f input) : COLOR
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -434,8 +434,8 @@
         return col;
     }
 
-    //float4 fragAdd(vertexOutput input) : COLOR
-    float4 fragAdd(vertexOutput input) : SV_Target
+    //float4 fragAdd(v2f input) : COLOR
+    float4 fragAdd(v2f input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         //float4 col = float4(1,1,1,1);
@@ -531,7 +531,7 @@
 
     }
 
-    float4 fragBaseOutline(vertexOutputOutline input) : COLOR
+    float4 fragBaseOutline(v2fOutline input) : COLOR
     {
         //if (input.localOutlineWidth <= 0.0001)
         if (tex2D(_OutlineWidthMask, input.tex).r <= 0.001)
@@ -566,8 +566,8 @@
 
         return outlineCol;
     }
-    //float4 fragAddOutline(vertexOutputOutline input) : COLOR
-    float4 fragAddOutline(vertexOutputOutline input) : SV_Target
+    //float4 fragAddOutline(v2fOutline input) : COLOR
+    float4 fragAddOutline(v2fOutline input) : SV_Target
     {
         //if (_OutlineWidth <= 0)
         //{

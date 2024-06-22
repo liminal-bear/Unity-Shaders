@@ -189,7 +189,7 @@ Shader "MatCapHueShift"
 			#include "UnityPBSLighting.cginc"
 			#include "AutoLight.cginc"
 
-			struct vertexInput
+			struct appdata
 			{
 				float4 vertex : POSITION;
 				float2 texcoord : TEXCOORD0;
@@ -198,7 +198,7 @@ Shader "MatCapHueShift"
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
-			struct VertexOutput
+			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				float2 texcoord : TEXCOORD0;
@@ -217,11 +217,11 @@ Shader "MatCapHueShift"
 
 			//UNITY_DECLARE_TEX2D(_MatCap);
 
-			VertexOutput vert(vertexInput input)
+			v2f vert(appdata input)
 			{
-				VertexOutput output;
+				v2f output;
 				UNITY_SETUP_INSTANCE_ID(input);
-				UNITY_INITIALIZE_OUTPUT(VertexOutput, output);
+				UNITY_INITIALIZE_OUTPUT(v2f, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 				output.pos = UnityObjectToClipPos(input.vertex);
@@ -248,7 +248,7 @@ Shader "MatCapHueShift"
 				return output;
 			}
 
-			float4 frag(VertexOutput input, float facing : VFACE) : SV_Target
+			float4 frag(v2f input, float facing : VFACE) : SV_Target
 			{
 				float4 albedo = tex2D(_MainTex, TRANSFORM_TEX(input.texcoord, _MainTex));
 				float adjustMask = tex2D(_AdjustMask, input.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw).r;

@@ -116,14 +116,14 @@ Shader "dawnOutline"
         return round(num * quantize) / quantize;
     }
 
-    struct vertexInput
+    struct appdata
     {
         float4 vertex : POSITION;
         float4 texcoord : TEXCOORD0;
         float3 normal : NORMAL;
         float4 tangent : TANGENT;
     };
-    struct vertexOutput
+    struct v2f
     {
         float4 pos : SV_POSITION;
         float4 posWorld : TEXCOORD0;
@@ -149,9 +149,9 @@ Shader "dawnOutline"
             #pragma fragment frag
             //#pragma multi_compile_fwdbase
             //#pragma target 3.0
-            vertexOutput vert(vertexInput input)
+            v2f vert(appdata input)
             {
-                vertexOutput output;
+                v2f output;
                 //position.xyz += normal * _OutlineWidth;//offset vertex positions outwards by _OutlineWidth
                 output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
                 //output.tex = input.texcoord;
@@ -186,7 +186,7 @@ Shader "dawnOutline"
                 return output;
             }
 
-            float4 frag(vertexOutput input) : COLOR
+            float4 frag(v2f input) : COLOR
             {
                 //float4 col = float4(1,1,1,1);
                 float4 col = tex2Dproj(_GrabTexture, input.vGrabPos);
@@ -208,9 +208,9 @@ Shader "dawnOutline"
 
 
 
-            vertexOutput vert(vertexInput input)
+            v2f vert(appdata input)
             {
-                vertexOutput output;
+                v2f output;
                 //position.xyz += normal * _OutlineWidth;//offset vertex positions outwards by _OutlineWidth
                 output.posWorld = mul(UNITY_MATRIX_M, input.vertex);
                 //output.tex = input.texcoord;
@@ -252,7 +252,7 @@ Shader "dawnOutline"
             }
 
 
-            float4 frag(vertexOutput input) : COLOR
+            float4 frag(v2f input) : COLOR
             {
                 float4 col = _OutlineColor;
 

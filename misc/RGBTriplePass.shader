@@ -23,14 +23,14 @@
               uniform sampler2D _DisplacementTex;
               uniform float _MaxDisplacement;
 
-              struct vertexInput {
+              struct appdata {
                  float4 vertex : POSITION;
                  float3 normal : NORMAL;
                  float4 tangent : TANGENT;
                  float4 texcoord : TEXCOORD0;
               };
 
-              struct vertexOutput {
+              struct v2f {
                   float4 position : SV_POSITION;
                   float4 posWorld : TEXCOORD0;
                   // position of the vertex (and fragment) in world space 
@@ -41,8 +41,8 @@
                   fixed3 vLight : COLOR;
               };
 
-              vertexOutput vert(vertexInput i) {
-                 vertexOutput o;
+              v2f vert(appdata i) {
+                 v2f o;
                  
                  // get color from displacement map, and convert to float from 0 to _MaxDisplacement
                  float4 dispTexColor = tex2Dlod(_DisplacementTex, float4(i.texcoord.xy, 0.0, 0.0));
@@ -67,7 +67,7 @@
 
               }
 
-              float4 frag(vertexOutput i) : COLOR
+              float4 frag(v2f i) : COLOR
               {
                  //return tex2D(_MainTex, i.texcoord.xy);
                  return float4(1,0,0,.5);
@@ -93,14 +93,14 @@
               uniform sampler2D _DisplacementTex;
               uniform float _MaxDisplacement;
 
-              struct vertexInput {
+              struct appdata {
                  float4 vertex : POSITION;
                  float3 normal : NORMAL;
                  float4 tangent : TANGENT;
                  float4 texcoord : TEXCOORD0;
               };
 
-              struct vertexOutput {
+              struct v2f {
                   float4 position : SV_POSITION;
                   float4 posWorld : TEXCOORD0;
                   // position of the vertex (and fragment) in world space 
@@ -111,8 +111,8 @@
                   fixed3 vLight : COLOR;
               };
 
-              vertexOutput vert(vertexInput i) {
-                 vertexOutput o;
+              v2f vert(appdata i) {
+                 v2f o;
 
                  // get color from displacement map, and convert to float from 0 to _MaxDisplacement
                  float4 dispTexColor = tex2Dlod(_DisplacementTex, float4(i.texcoord.xy, 0.0, 0.0));
@@ -138,7 +138,7 @@
 
               }
 
-              float4 frag(vertexOutput i) : COLOR
+              float4 frag(v2f i) : COLOR
               {
                   //return tex2D(_MainTex, i.texcoord.xy);
                   return float4(0,1,0,.5);
@@ -164,14 +164,14 @@
                  uniform sampler2D _DisplacementTex;
                  uniform float _MaxDisplacement;
 
-                 struct vertexInput {
+                 struct appdata {
                     float4 vertex : POSITION;
                     float3 normal : NORMAL;
                     float4 tangent : TANGENT;
                     float4 texcoord : TEXCOORD0;
                  };
 
-                 struct vertexOutput {
+                 struct v2f {
                      float4 position : SV_POSITION;
                      float4 posWorld : TEXCOORD0;
                      // position of the vertex (and fragment) in world space 
@@ -182,8 +182,8 @@
                      fixed3 vLight : COLOR;
                  };
 
-                 vertexOutput vert(vertexInput i) {
-                    vertexOutput o;
+                 v2f vert(appdata i) {
+                    v2f o;
 
                     // get color from displacement map, and convert to float from 0 to _MaxDisplacement
                     float4 dispTexColor = tex2Dlod(_DisplacementTex, float4(i.texcoord.xy, 0.0, 0.0));
@@ -209,7 +209,7 @@
 
                  }
 
-                 float4 frag(vertexOutput i) : COLOR
+                 float4 frag(v2f i) : COLOR
                  {
                      //return tex2D(_MainTex, i.texcoord.xy);
                      return float4(0,0,1,.5);
