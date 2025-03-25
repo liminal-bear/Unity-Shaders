@@ -1,4 +1,4 @@
-﻿Shader "HologramHSV"
+Shader "HologramHSV"
 {
 	//hologram shader
 	Properties
@@ -16,7 +16,9 @@
 		//primary lines
 		[Toggle] _Axis("Vertical or Horizontal?", Float) = 1
 		[Toggle] _LineSpace("Screenspace or object space?", Float) = 0
-		_Density("Line Density", Range(0,100)) = 2.61
+		_Density("Line Density", Range(0,0.5)) = 2.61
+		// _Thickness("Line Thickness", Range(.5, .63)) = .56
+		_Thickness("Line Thickness", Range(0, 2)) = .56
 		_LineSpeed("Line Speed", Range(-100,100)) = 8.91
 		_Flicker("Flickering", Range(0,1000)) = 100
 		_FlickerStrength("Flicker Strength", Range(0,10)) = 2.7
@@ -53,12 +55,19 @@
 	float _Axis, _LineSpace, _Opacity, _CutoutOpacity;
 	float _DistortAxis, _Distortion, _DistortionSpeed;
 	half _Density, _Density2,  _LineSpeed,  _LineSpeed2, _Flicker, _FlickerStrength, _Brightness, _Brightness2, _RimSize, _RimBrightness;
+	float _Thickness;
 	int _Smoothness;
 
 	//psuedo random number generator
 	float random(float2 seed)
 	{
 	   return frac(sin(dot(seed, float2(12.9898, 78.233))) * 43758.5453123);
+	}
+	
+	float saw(float x)
+	{
+		return 1 * (x - floor(0.5 + x));
+		// return 2 * (x - lerp(x,int(x), pow(frac(x),.5)));
 	}
 
 	float Quantize(float num, float quantize)
@@ -256,7 +265,17 @@
 					//col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density))) > 0.9 ? 1 : 0;
 
 					//col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density))) > 0.9 ? 1 : 0;
-					col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((PrimaryPos )* _Density))) > 0.9 ? 1 : 0;
+					// col.a = (0.9 + 0.1 * sin(_LineSpeed * _Time.y + ((PrimaryPos ) * _Density))) > 0.9 ? 1 : 0;
+					float lineTest = 1 + 1 * saw(_LineSpeed * _Time.y + ((PrimaryPos) * _Density));
+
+
+					// return float4(lineTest,lineTest,lineTest,1);
+
+
+
+					col.a = col.a * lineTest > _Thickness ? 1 : 0;
+					// return float4(col.a,col.a,col.a,1);
+
 					col.a = _Density == 0 ? 1 : col.a;
 
 					//col.a = 0.5 + sin(_LineSpeed * _Time.y + ((input.pos.x + adjustment)* _Density));
@@ -312,6 +331,7 @@
 
 
 					col.a = lerp(_CutoutOpacity, _Opacity, col.a);
+					clip(col.a-0.01);
 					//col.a = 1;
 					return col;
 			}
